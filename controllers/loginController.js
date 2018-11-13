@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator/check');
 require('dotenv').config();
 
-const User = require('../models/user');
+const db = require('../util/database');
 
 const loginController = async (req, res, next) => {
     const errors = validationResult(req);
@@ -12,8 +12,8 @@ const loginController = async (req, res, next) => {
         res.status(422).json({ msg: errors.array()[0].msg });
     }
     try {
-        user = await User.findOne({ where: { email: req.body.email }});
-        if (!user) {
+        [user] = await db.execute('SELECT * FROM users WHERE email = ?', [req.body.email]);
+        if (user.length === 0) {
             res.status(401).json({ msg: 'Invalid email or password' });
         }
     }
@@ -21,11 +21,11 @@ const loginController = async (req, res, next) => {
         next(new Error(error));
     }
     try {
-        const result = await bcrypt.compare(req.body.password, user.password);
+        const result = await bcrypt.compare(req.body.password, user[0].password);
         if (result === true) {
             const token = jwt.sign({
-                email: user.email,
-                userId: user.id
+                email: user[0].email,
+                userId: user[0].id
             }, process.env.JWT_SECRET, { expiresIn: '2h' });
             res.status(200).json({ msg: "logged in", token: token });
         }

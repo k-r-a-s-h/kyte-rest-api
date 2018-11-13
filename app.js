@@ -1,10 +1,6 @@
 const express = require('express');
 const logger = require('morgan');
 
-const sequelize = require('./util/database');
-const User = require('./models/user');
-const Post = require('./models/post');
-
 const registerRouter = require('./routes/register');
 const loginRouter = require('./routes/login');
 const postRouter = require('./routes/post');
@@ -31,14 +27,6 @@ app.use((err, req, res, next) => {
     res.status(err.status || 500).json({ msg: err.message || 'Error occured' });
 });
 
-
-User.hasMany(Post, {foreignKey: 'p_id', sourceKey: 'id'});
-
-sequelize.sync()
-    .then(result => {
-        app.listen(process.env.PORT);
-        console.log('Server running on localhost:5000');
-    })
-    .catch(err => {
-        console.log(err);
-    });
+app.listen(process.env.PORT, () => {
+    console.log('Server running on localhost:5000');
+});

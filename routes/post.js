@@ -12,4 +12,10 @@ router.post('/save', isAuth, [
 
 router.post('/getposts', isAuth, postController.getPosts);
 
+router.post('/getfriendposts', isAuth, postController.getFriendPosts);
+
+router.post('/likepost', isAuth, [
+    body('postId', 'Post id is required').exists()
+], postController.likePost);
+
 module.exports = router;

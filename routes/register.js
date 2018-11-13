@@ -2,14 +2,14 @@ const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator/check');
 
-const User = require('../models/user');
+const db = require('../util/database');
 const registerController = require('../controllers/registerController');
 
 router.post('/', [
   body('email', 'Email is required').exists().isEmail().withMessage('Invalid email').custom((value, { req }) => {
-    return User.findOne({ email: value })
-      .then(user => {
-        if (user) {
+    return db.execute('SELECT 1 FROM users WHERE email = ?', [value])
+      .then(([user]) => {
+        if (user.length > 0) {
           return Promise.reject('E-mail already in use');
         }
       });
@@ -17,9 +17,9 @@ router.post('/', [
   body('password', 'Password is required').exists().isLength({ min: 5, max: 20}).withMessage('Password should have 5-20 characters'),
   body('name', 'Name is required').exists().isLength({ min: 5, max: 40}).escape().trim(),
   body('username', 'Username is required').exists().isAlphanumeric().withMessage('Username should be alpha-numeric').custom((value, { req }) => {
-    return User.findOne({ username: value })
-      .then(user => {
-        if (user) {
+    return db.execute('SELECT 1 FROM users WHERE username = ?', [value])
+      .then(([user]) => {
+        if (user.length > 0) {
           return Promise.reject('Username already in use');
         }
       });
