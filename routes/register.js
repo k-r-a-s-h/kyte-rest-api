@@ -14,9 +14,11 @@ router.post('/', [
         }
       });
   }),
-  body('password', 'Password is required').exists().isLength({ min: 5, max: 20}).withMessage('Password should have 5-20 characters'),
+  body('password', 'Password is required').exists().isLength({ min: 5, max: 25}).withMessage('Password should have atleast 5 characters'),
   body('name', 'Name is required').exists().isLength({ min: 5, max: 40}).escape().trim(),
-  body('username', 'Username is required').exists().isAlphanumeric().withMessage('Username should be alpha-numeric').custom((value, { req }) => {
+  body('username', 'Username is required').exists()
+  .isLength({ min: 5, max: 25}).withMessage('Username should have atleast 5 characters')
+  .isAlphanumeric().withMessage('Username should be alpha-numeric').custom((value, { req }) => {
     return db.execute('SELECT 1 FROM users WHERE username = ?', [value])
       .then(([user]) => {
         if (user.length > 0) {

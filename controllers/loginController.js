@@ -7,20 +7,14 @@ const db = require('../util/database');
 
 const loginController = async (req, res, next) => {
     const errors = validationResult(req);
-    let user;
     if (!errors.isEmpty()) {
-        res.status(422).json({ msg: errors.array()[0].msg });
+        return res.status(422).json({ msg: errors.array()[0].msg });
     }
     try {
-        [user] = await db.execute('SELECT * FROM users WHERE email = ?', [req.body.email]);
+        const [user] = await db.execute('SELECT * FROM users WHERE email = ?', [req.body.email]);
         if (user.length === 0) {
-            res.status(401).json({ msg: 'Invalid email or password' });
+            return res.status(401).json({ msg: 'User not found' });
         }
-    }
-    catch (error) {
-        next(new Error(error));
-    }
-    try {
         const result = await bcrypt.compare(req.body.password, user[0].password);
         if (result === true) {
             const token = jwt.sign({
@@ -30,7 +24,7 @@ const loginController = async (req, res, next) => {
             res.status(200).json({ msg: "logged in", token: token });
         }
         else {
-            res.status(401).json({ msg: 'Invalid email or password' });
+            res.status(401).json({ msg: 'Invalid password' });
         }
     }
     catch (error) {
