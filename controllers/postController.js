@@ -3,6 +3,10 @@ const { validationResult } = require('express-validator/check');
 const db = require('../util/database');
 
 const savePost = async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).json({ msg: errors.array()[0].msg });
+    }
     try {
         const result = await db.execute('INSERT INTO posts (po_id, post, public) VALUES (?, ?, ?)', [
             req.userId,
@@ -16,10 +20,20 @@ const savePost = async (req, res, next) => {
     }
 }
 
+const deletePost = async (req, res, next) => {
+    try {
+        const result = await db.execute('DELETE FROM posts WHERE id = ?', [req.body.postId]);
+        res.status(200).json({ msg: "Post deleted" });
+    }
+    catch (error) {
+        next(new Error(error));
+    }
+}
+
 const getPosts = async (req, res, next) => {
     try {
         let query = 'SELECT posts.id AS p_id, po_id AS u_id, username, name, image, posts.updatedAt, post, public FROM posts JOIN users ON (posts.po_id = users.id) where username = ?';
-        if (req.relation === 0 || req.relation === -1 || req.relation === -2) {
+        if (req.relation === 0 || req.relation === -2) {
             query += ' AND public = 1';
         }
         const [posts] = await db.execute(query, [req.body.username]);
@@ -76,5 +90,6 @@ module.exports = {
     savePost,
     getPosts,
     getFriendPosts,
-    likePost
+    likePost,
+    deletePost
 };
