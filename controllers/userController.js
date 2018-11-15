@@ -11,7 +11,7 @@ const getUser = async (req, res, next) => {
         req.body.id = req.userId;
     }
     try {
-        const [user] = await db.execute('SELECT id, email, username, name, birthday, gender FROM users WHERE id = ?', [req.body.id]);
+        const [user] = await db.execute('SELECT id, email, username, image, name, birthday, gender FROM users WHERE id = ?', [req.body.id]);
         res.status(200).json({ user: user[0] || [] });
     }
     catch (error) {
@@ -21,7 +21,7 @@ const getUser = async (req, res, next) => {
 
 const getAllUsers = async (req, res, next) => {
     try {
-        const [users] = await db.execute('SELECT id, email, username, name, birthday, gender FROM users WHERE id <> ?', [req.userId]);
+        const [users] = await db.execute('SELECT id, email, username, image, name, birthday, gender FROM users WHERE id <> ?', [req.userId]);
         res.status(200).json({ users: users });
     }
     catch (error) {
@@ -31,7 +31,7 @@ const getAllUsers = async (req, res, next) => {
 
 const getFriends = async (req, res, next) => {
     try {
-        const [friends] = await db.execute('SELECT id, email, username, name, birthday, gender FROM users WHERE id IN (SELECT user_one FROM relationships WHERE user_two = ? AND status = 1 UNION SELECT user_two from relationships WHERE user_one = ? AND status = 1)', [req.userId, req.userId]);
+        const [friends] = await db.execute('SELECT id, email, username, image, name, birthday, gender FROM users WHERE id IN (SELECT user_one FROM relationships WHERE user_two = ? AND status = 1 UNION SELECT user_two from relationships WHERE user_one = ? AND status = 1)', [req.userId, req.userId]);
         res.status(200).json({ friends: friends });
     }
     catch (error) {
@@ -47,9 +47,9 @@ const sendRequest = async (req, res, next) => {
     try {
         const sm = (req.userId > req.body.id) ? req.body.id : req.userId;
         const gt = (req.userId < req.body.id) ? req.body.id : req.userId;
-        const [status] = await db.execute('SELECT 1 FROM relationships WHERE user_one = ? AND user_two = ?', [sm, gt]);
+        const [status] = await db.execute('SELECT status FROM relationships WHERE user_one = ? AND user_two = ?', [sm, gt]);
         if (status.length > 0) {
-            return res.status(400).json({ msg: 'Request cannot be sent' });    
+            return res.status(400).json({ msg: 'Request cannot be sent' });
         }
         const [result] = await db.execute('INSERT INTO relationships (user_one, user_two, status, action_user, r_date) values (?, ?, ?, ?, ?)', [
             sm, gt, 0, req.userId, new Date().toISOString().split('.')[0]
@@ -83,7 +83,7 @@ const acceptRequest = async (req, res, next) => {
 
 const rejectRequest = async (req, res, next) => {
     try {
-        const [result] = await db.execute('UPDATE relationships SET status = 2, action_user = ? WHERE id = ?', [req.userId, req.body.relId]);
+        const [result] = await db.execute('DELETE FROM relationships WHERE id = ?', [req.body.relId]);
         res.status(200).json({ msg: 'Rejected' });
     }
     catch (error) {

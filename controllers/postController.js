@@ -45,7 +45,7 @@ const getPosts = async (req, res, next) => {
             }
             posts[i].likes = likAr;
         }
-        res.status(200).json({ posts: posts });
+        res.status(200).json({ posts: posts, relation: req.relation, u_id: req.u_id, actionUser: req.actionUser, relId: req.relId });
     }
     catch (error) {
         next(new Error(error));
