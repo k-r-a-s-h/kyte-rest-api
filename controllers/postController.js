@@ -30,10 +30,31 @@ const deletePost = async (req, res, next) => {
     }
 }
 
+const getPost = async (req, res, next) => {
+    try {
+        let query = 'SELECT posts.id AS p_id, po_id AS u_id, username, name, image, posts.updatedAt, post, public FROM posts JOIN users ON (posts.po_id = users.id) where posts.id = ?';
+        if (req.relation !== -1 && req.relation !== 1) {
+            query += ' AND public = 1';
+        }
+        const [post] = await db.execute(query, [req.body.postId]);
+        const [likes] = await db.execute('SELECT u_id from likes where p_id = ?', [post[0].p_id]);
+        const likAr = [];
+        for (let j=0; j<likes.length; j++) {
+            likAr.push(likes[j].u_id);
+        }
+        post[0].likes = likAr;
+        // }
+        res.status(200).json({ post: post, relation: req.relation, u_id: req.u_id, actionUser: req.actionUser, relId: req.relId });
+    }
+    catch (error) {
+        next(new Error(error));
+    }
+}
+
 const getPosts = async (req, res, next) => {
     try {
         let query = 'SELECT posts.id AS p_id, po_id AS u_id, username, name, image, posts.updatedAt, post, public FROM posts JOIN users ON (posts.po_id = users.id) where username = ?';
-        if (req.relation === 0 || req.relation === -2) {
+        if (req.relation !== -1 && req.relation !== 1) {
             query += ' AND public = 1';
         }
         const [posts] = await db.execute(query, [req.body.username]);
@@ -88,6 +109,7 @@ const likePost = async (req, res, next) => {
 
 module.exports = {
     savePost,
+    getPost,
     getPosts,
     getFriendPosts,
     likePost,

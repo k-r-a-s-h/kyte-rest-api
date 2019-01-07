@@ -22,6 +22,13 @@ const getUser = async (req, res, next) => {
 const getAllUsers = async (req, res, next) => {
     try {
         const [users] = await db.execute('SELECT id, email, username, image, name, birthday, gender FROM users WHERE id <> ?', [req.userId]);
+        for (let i=0; i<users.length; i++) {
+            const resl = await db.execute('SELECT id FROM relationships WHERE ((user_one = ? AND user_two = ?) OR (user_one = ? AND user_two = ?)) AND status = 1', [req.userId, users[i].id, users[i].id, req.userId]);
+            if (resl[0].length > 0) {
+                users[i].friends = 1;
+            }
+        }
+        console.log(users);
         res.status(200).json({ users: users });
     }
     catch (error) {
@@ -63,8 +70,14 @@ const sendRequest = async (req, res, next) => {
 
 const getRequests = async (req, res, next) => {
     try {
-        const [result] = await db.execute('SELECT * FROM relationships WHERE ((user_one = ? OR user_two = ?) AND status = 0 AND action_user = ?)', [req.userId, req.userId, req.userId]);
-        res.status(200).json({ requests: result });
+        const [result] = await db.execute('SELECT * FROM relationships WHERE ((user_one = ? OR user_two = ?) AND status = 0 AND action_user <> ?)', [req.userId, req.userId, req.userId]);
+        let users =  [];
+        for(let i = 0; i<result.length; i++) {
+            const resl = await db.execute('SELECT id, email, username, image, name, birthday, gender FROM users WHERE id = ?', [result[i].action_user]);
+            resl[0][0].relId = result[i].id;
+            users.push(resl[0][0]);
+        }
+        res.status(200).json({ requests: users });
     }
     catch (error) {
         next(new Error(error));

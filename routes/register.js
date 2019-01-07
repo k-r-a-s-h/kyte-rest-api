@@ -24,6 +24,9 @@ router.post('/', [
         if (user.length > 0) {
           return Promise.reject('Username already in use');
         }
+        if (value === 'home' || value === 'notifications' || value === 'friends' || value === 'discover' || value === 'requests' || value === 'message') {
+          return Promise.reject('Username not available');
+        }
       });
   }),
   body('birthday', 'Birthday is required').exists().toDate(),

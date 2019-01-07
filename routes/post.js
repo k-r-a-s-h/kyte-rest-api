@@ -6,6 +6,7 @@ const isAuth = require('../middlewares/isAuthenticated');
 const getId = require('../middlewares/getId');
 const getRelation = require('../middlewares/getRelation');
 const canModify  = require('../middlewares/canModifyPost');
+const getPosterId  = require('../middlewares/getPosterId');
 const postController = require('../controllers/postController');
 
 router.post('/save', isAuth, [
@@ -21,8 +22,12 @@ router.post('/like', isAuth, [
     body('postId', 'post id is required').exists()
 ], postController.likePost);
 
+router.post('/getpost', isAuth, [
+    body('postId', 'post id is required').exists()
+ ], getPosterId, getRelation, postController.getPost);
+
 router.post('/getposts', isAuth, [
-    body('username', 'username is required').exists()
+    body('username', 'username is required').exists().isAlphanumeric().withMessage('Username should be alpha-numeric')
  ], getId, getRelation, postController.getPosts);
 
 router.post('/getfriendposts', isAuth, postController.getFriendPosts);

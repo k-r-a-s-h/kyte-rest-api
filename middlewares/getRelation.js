@@ -19,4 +19,14 @@ const getRelation = async (req, res, next) => {
     }
 }
 
+/*
+
+RELATION CHART:
+-2 => Users have no communication but they exist
+-1 => Same user
+ 0 => Friend request sent by action_user
++1 => Users are friends
+
+*/
+
 module.exports = getRelation;
