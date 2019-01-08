@@ -38,12 +38,13 @@ const getPost = async (req, res, next) => {
         }
         const [post] = await db.execute(query, [req.body.postId]);
         const [likes] = await db.execute('SELECT u_id from likes where p_id = ?', [post[0].p_id]);
+        const [comments] = await db.execute('SELECT count(*) as no_of_comments from comments where p_id = ?', [post[0].p_id]);
         const likAr = [];
         for (let j=0; j<likes.length; j++) {
             likAr.push(likes[j].u_id);
         }
         post[0].likes = likAr;
-        // }
+        post[0].noOfComments = comments[0].no_of_comments + ''; 
         res.status(200).json({ post: post, relation: req.relation, u_id: req.u_id, actionUser: req.actionUser, relId: req.relId });
     }
     catch (error) {
@@ -60,11 +61,13 @@ const getPosts = async (req, res, next) => {
         const [posts] = await db.execute(query, [req.body.username]);
         for (let i=0; i<posts.length; i++) {
             const [likes] = await db.execute('SELECT u_id from likes where p_id = ?', [posts[i].p_id]);
+            const [comments] = await db.execute('SELECT count(*) as no_of_comments from comments where p_id = ?', [posts[i].p_id]);
             const likAr = [];
             for (let j=0; j<likes.length; j++) {
                 likAr.push(likes[j].u_id);
             }
             posts[i].likes = likAr;
+            posts[i].noOfComments = comments[0].no_of_comments + '';
         }
         res.status(200).json({ posts: posts, relation: req.relation, u_id: req.u_id, actionUser: req.actionUser, relId: req.relId });
     }
@@ -78,11 +81,13 @@ const getFriendPosts = async (req, res, next) => {
         const [posts] = await db.execute('SELECT posts.id AS p_id, po_id AS u_id, username, name, image, posts.updatedAt, post, public FROM posts JOIN users ON (posts.po_id = users.id) WHERE po_id IN (SELECT user_one FROM relationships WHERE user_two = ? AND status = 1 UNION SELECT user_two from relationships WHERE user_one = ? AND status = 1)', [req.userId, req.userId]);
         for (let i=0; i<posts.length; i++) {
             const [likes] = await db.execute('SELECT u_id from likes where p_id = ?', [posts[i].p_id]);
+            const [comments] = await db.execute('SELECT count(*) as no_of_comments from comments where p_id = ?', [posts[i].p_id]);
             const likAr = [];
             for (let j=0; j<likes.length; j++) {
                 likAr.push(likes[j].u_id);
             }
             posts[i].likes = likAr;
+            posts[i].noOfComments = comments[0].no_of_comments + '';
         }
         res.status(200).json({ posts: posts });
     }
