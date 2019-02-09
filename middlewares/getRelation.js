@@ -2,8 +2,12 @@ const db = require('../util/database');
 
 const getRelation = async (req, res, next) => {
     try {
-        const sm = (req.userId > req.u_id) ? req.u_id : req.userId;
-        const gt = (req.userId < req.u_id) ? req.u_id : req.userId;
+        let other = req.u_id;
+        if (!other) {
+            other = req.body.r_id;
+        }
+        const sm = (req.userId > other) ? other : req.userId;
+        const gt = (req.userId < other) ? other : req.userId;
         if (sm === gt) {
             req.relation = -1;
             return next();
@@ -22,7 +26,7 @@ const getRelation = async (req, res, next) => {
 /*
 
 RELATION CHART:
--2 => Users have no communication but they exist
+-2 => Users have no communication
 -1 => Same user
  0 => Friend request sent by action_user
 +1 => Users are friends

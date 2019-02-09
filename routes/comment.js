@@ -17,4 +17,8 @@ router.post('/getall', isAuth, [
     body('postId', 'post id is required').exists()
 ], getPosterId, getRelation, commentController.getAllComments);
 
+router.post('/delete', isAuth, [
+    body('comId', 'comment id is required').exists()
+], commentController.deleteComment);
+
 module.exports = router;

@@ -28,7 +28,6 @@ const getAllUsers = async (req, res, next) => {
                 users[i].friends = 1;
             }
         }
-        console.log(users);
         res.status(200).json({ users: users });
     }
     catch (error) {
@@ -72,7 +71,7 @@ const getRequests = async (req, res, next) => {
     try {
         const [result] = await db.execute('SELECT * FROM relationships WHERE ((user_one = ? OR user_two = ?) AND status = 0 AND action_user <> ?)', [req.userId, req.userId, req.userId]);
         let users =  [];
-        for(let i = 0; i<result.length; i++) {
+        for (let i = 0; i<result.length; i++) {
             const resl = await db.execute('SELECT id, email, username, image, name, birthday, gender FROM users WHERE id = ?', [result[i].action_user]);
             resl[0][0].relId = result[i].id;
             users.push(resl[0][0]);

@@ -24,8 +24,8 @@ router.post('/', [
         if (user.length > 0) {
           return Promise.reject('Username already in use');
         }
-        if (value === 'home' || value === 'notifications' || value === 'friends' || value === 'discover' || value === 'requests' || value === 'message' || value === 'post') {
-          return Promise.reject('Username not available');
+        if (value === 'home' || value === 'notifications' || value === 'friends' || value === 'discover' || value === 'requests' || value === 'message' || value === 'post' || value === 'login' || value === 'register' || value === 'reset' ) {
+          return Promise.reject(`Username ${value} is a reserved word`);
         }
       });
   }),

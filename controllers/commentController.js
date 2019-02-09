@@ -47,7 +47,22 @@ const getAllComments = async (req, res, next) => {
     }
 }
 
+const deleteComment = async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).json({ msg: errors.array()[0].msg });
+    }
+    try {
+        const [com_id] = await db.execute('SELECT com_id from comments where id = ?', [req.body.comId]);
+        console.log(com_id);
+    }
+    catch (error) {
+        next(new Error(error));
+    }
+}
+
 module.exports = {
     saveComment,
-    getAllComments
+    getAllComments,
+    deleteComment
 };
