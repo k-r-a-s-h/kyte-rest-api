@@ -1,12 +1,13 @@
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
+const sendgrid = require('@sendgrid/mail');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator/check');
 
 const saltRounds = 12;
 
 const db = require('../util/database');
-const transporter = require('../util/email');
+sendgrid.setApiKey(process.env.SENDGRID_API_KEY);
 
 const login = async (req, res, next) => {
     const errors = validationResult(req);
@@ -56,11 +57,11 @@ const resetPassword = async (req, res, next) => {
         const token = buffer.toString('hex');
         try {
             await db.execute('INSERT INTO reset_tokens (email, token) values (?, ?)', [req.body.email, token]);
-            await transporter.sendMail({
-                to: req.body.email,
-                from: 'donotreply@kyte.com',
-                subject: 'Reset password link',
-                html: `
+            await sendgrid.send({
+              to: req.body.email,
+              from: "donotreply@kyte.com",
+              subject: "Reset password link",
+              html: `
                     <h1>Kyte</h1>
                     <p>You requested a password reset</p>
                     <p>Click this link: <a href="http://localhost:8080/reset/${token}">Reset password</a> </p>
